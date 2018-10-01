@@ -5,38 +5,40 @@
 
 #define TRUE 1
 #define FALSE 0
-struct name{
+
+typedef struct {
     char fname[30];
     char lname[30];
-};
-struct date{
+}name;
+typedef struct {
     int day,month,year;
-};
-struct address{
+}date;
+typedef struct {
     char door_no[10];
     char address_line1[100];
     char city[20];
     char state[20];
-};
-struct credentials{
+}address;
+typedef struct {
     char login_name[100];
     char password[100];
-};
-struct seller{
-    struct name s_name;
-    struct address s_address;
+}credentials;
+typedef struct {
+    name s_name;
+    address s_address;
     char phone_no[11];
 
-};
-struct counters{
+}seller;
+typedef struct {
     int u_ID;
     int p_ID;
     int o_ID;
-}main_counter={0,0,0};
+}counters;
+counters main_counter={0,0,0};
 typedef struct {
     int u_ID;
-    struct name u_name;
-    struct address u_address;
+    name u_name;
+    address u_address;
     int prime;
     char phone_no[11];
     char email_id[20];
@@ -51,7 +53,7 @@ typedef struct{
     float price;
     float rating;
     int discount;
-    struct seller p_seller;
+    seller p_seller;
 }product;
 typedef struct{
     int o_ID;
@@ -59,23 +61,36 @@ typedef struct{
     int p_ID;
     user o_user;
     product o_product;
-    struct address shipping_address;
+    address shipping_address;
 }order;
 
-user createUser()
+struct user_list{
+    user data;
+    struct user_list *next;
+};
+
+struct user_list *user_front =NULL, *user_end=NULL, *user_temp=NULL;
+void write_counters(counters c)
 {
-    user temp;
-    return temp;
+    FILE *write = fopen("data/counters.dat","w");
+    if(write == NULL)
+    {
+        printf("File couldn't be created\n");
+        exit(EXIT_FAILURE);
+    }
+    fwrite(&c,sizeof(counters),1,write);
+    fclose(write);
 }
-product createProduct()
+void read_counters()
 {
-    product temp1;
-    return temp1;
-}
-order createOrder()
-{
-    order temp2;
-    return temp2;
+    FILE *read = fopen("data/counters.dat","r");
+    if(read == NULL)
+    {
+        printf("File doesn't exist\n");
+        exit(EXIT_FAILURE);
+    }
+    fread(&main_counter,sizeof(counters),1,read);
+    fclose(read);
 }
 int login_admin()
 {
@@ -104,18 +119,20 @@ int login_user()
     char login_name[100],password[100];
     char check_login[100],check_password[100];
     FILE *read_login;
-    struct credentials input;
+    credentials input;
     printf("Enter Login Name: ");
     gets(login_name);
     printf("Enter Password: ");
     fflush(stdin);
     gets(password);
+    user_temp = user_front;
+
     if((read_login = fopen("data/user_login.dat","r")) == NULL)
     {
         printf("Couldn't find User Database\n");
         exit(EXIT_FAILURE);
     }
-    while(fread(&input,sizeof(struct credentials), 1, read_login))
+    while(fread(&input,sizeof(credentials), 1, read_login))
     {
         if(!strcmp(input.login_name,login_name) && !strcmp(input.password,password))
         {
@@ -126,29 +143,19 @@ int login_user()
     fclose(read_login);
 return FALSE;
 }
-void write_counters(struct counters c)
+void insert_user_tolist()
 {
-    FILE *write = fopen("data/counters.dat","w");
-    if(write == NULL)
+    if(user_front == NULL)
     {
-        printf("File couldn't be created\n");
-        exit(EXIT_FAILURE);
+        user_front = user_temp;
+        user_end = user_temp;
     }
-    fwrite(&c,sizeof(struct counters),1,write);
-    fclose(write);
-}
-void read_counters()
-{
-    FILE *read = fopen("data/counters.dat","r");
-    if(read == NULL)
+    else
     {
-        printf("File doesn't exist\n");
-        exit(EXIT_FAILURE);
+        user_end->next = user_temp;
+        user_end = user_temp;
     }
-    fread(&main_counter,sizeof(struct counters),1,read);
-    fclose(read);
 }
-
 void write_user(user u)
 {
     FILE *register_user = fopen("data/user_details.dat","a");
@@ -163,7 +170,8 @@ void write_user(user u)
 void user_register()
 {
     user usr;
-    read_counters();
+    user_temp = (struct user_list *)malloc(sizeof(struct user_list));
+    //read_counters();
     main_counter.u_ID++;
     usr.u_ID = main_counter.u_ID;
     printf("Enter your Details\n\n");
@@ -187,8 +195,27 @@ void user_register()
     printf("State: ");
     gets(usr.u_address.state);
     fflush(stdin);
+    user_temp->data = usr;
+    user_temp->next = NULL;
+    insert_user_tolist();
     write_counters(main_counter);
     write_user(usr);
+}
+void load_users()
+{
+    FILE *load_user=fopen("data/user_details.dat","r");
+    int i = main_counter.u_ID;
+    user loader;
+    while(i>0)
+    {
+        fread(&loader,sizeof(user),1,load_user);
+        user_temp = (struct user_list*)malloc(sizeof(struct user_list));
+        user_temp->next = NULL;
+        user_temp->data = loader;
+        insert_user_tolist();
+        i--;
+    }
+    fclose(load_user);
 }
 int main()
 {
@@ -199,6 +226,8 @@ int main()
         write_counters(main_counter);
     }
         fclose(load_impt);
+    read_counters();
+    load_users();
     while(1)
     {
         system("cls");
@@ -226,7 +255,7 @@ int main()
             while(1)
             {
                 system("cls");
-                printf("1.Login\n2.Sign up\n\n");
+                printf("1.Login\n2.Sign up\n3.Logout\n\n");
                 scanf("%d",&ch2);
                 switch(ch2)
                 {
