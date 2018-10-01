@@ -42,6 +42,7 @@ typedef struct {
     int prime;
     char phone_no[11];
     char email_id[20];
+    char password[20];
     int i;
     int o_ID[100];
 }user;
@@ -117,30 +118,24 @@ return FALSE;
 int login_user()
 {
     char login_name[100],password[100];
-    char check_login[100],check_password[100];
-    FILE *read_login;
-    credentials input;
-    printf("Enter Login Name: ");
+    int match = 0;
+    printf("Enter Email ID: ");
     gets(login_name);
     printf("Enter Password: ");
     fflush(stdin);
     gets(password);
     user_temp = user_front;
-
-    if((read_login = fopen("data/user_login.dat","r")) == NULL)
+    while(user_temp != NULL)
     {
-        printf("Couldn't find User Database\n");
-        exit(EXIT_FAILURE);
-    }
-    while(fread(&input,sizeof(credentials), 1, read_login))
-    {
-        if(!strcmp(input.login_name,login_name) && !strcmp(input.password,password))
+        if(strcmp(user_temp->data.email_id,login_name) == 0 && strcmp(user_temp->data.password,password) == 0)
         {
-            fclose(read_login);
-            return TRUE;
+            match = 1;
+            break;
         }
+        user_temp = user_temp->next;
     }
-    fclose(read_login);
+    if(match == 1)
+        return TRUE;
 return FALSE;
 }
 void insert_user_tolist()
@@ -171,6 +166,7 @@ void user_register()
 {
     user usr;
     user_temp = (struct user_list *)malloc(sizeof(struct user_list));
+    char password1[20],password2[20];
     //read_counters();
     main_counter.u_ID++;
     usr.u_ID = main_counter.u_ID;
@@ -195,6 +191,23 @@ void user_register()
     printf("State: ");
     gets(usr.u_address.state);
     fflush(stdin);
+    printf("Enter Email ID: ");
+    gets(user.email_id);
+    printf("Enter phone number: ");
+    gets(usr.phone_no);
+    fflush(stdin);
+    reenter_password:
+    printf("Password: ");
+    gets(password1);
+    fflush(stdin);
+    printf("Reenter Password: ");
+    gets(password2);
+    fflush(stdin);
+    if(strcmp(password1,password2) != 0)
+    {
+        printf("Passwords dont match Enter again\n");
+        goto reenter_password;
+    }
     user_temp->data = usr;
     user_temp->next = NULL;
     insert_user_tolist();
