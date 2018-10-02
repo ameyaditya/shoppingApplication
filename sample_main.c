@@ -192,7 +192,7 @@ void user_register()
     gets(usr.u_address.state);
     fflush(stdin);
     printf("Enter Email ID: ");
-    gets(user.email_id);
+    gets(usr.email_id);
     printf("Enter phone number: ");
     gets(usr.phone_no);
     fflush(stdin);
@@ -208,11 +208,14 @@ void user_register()
         printf("Passwords dont match Enter again\n");
         goto reenter_password;
     }
+    usr.prime = 0;
     user_temp->data = usr;
     user_temp->next = NULL;
     insert_user_tolist();
     write_counters(main_counter);
     write_user(usr);
+    printf("Registration Successful\n");
+    system("pause");
 }
 void load_users()
 {
@@ -230,6 +233,80 @@ void load_users()
     }
     fclose(load_user);
 }
+void view_users()
+{
+    user_temp = user_front;
+    printf("USER ID \tUSER NAME \tEMAIL ID\n");
+    while(user_temp != NULL)
+    {
+        printf("%7d\t",user_temp->data.u_ID);
+        printf("%9s\t",user_temp->data.u_name.fname);
+        printf("%10s\n",user_temp->data.email_id);
+        user_temp = user_temp->next;
+    }
+    system("pause");
+}
+void manage_users()
+{
+    while(1)
+    {
+        int ch;
+        system("cls");
+        printf("ONLINE SHOPPING APPLICATION\n\n");
+        printf("1.Add User\n2.View Users\n3.Delete User by ID\n4.View User detail by ID\n5.Set User Priority\n6.Exit\n\n");
+        printf("Enter your choice: ");
+        scanf("%d",&ch);
+        switch(ch)
+        {
+        case 1:
+            user_register();
+            break;
+        case 2:
+            view_users();
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            return;
+        default:
+            printf("Wrong Choice entered\n");
+        }
+;    }
+}
+void admin_home()
+{
+    int ch;
+    while(1)
+    {
+        system("cls");
+        printf("ONLINE SHOPPING APPLICATION\n\n");
+        printf("1. Manage Users\n2.Manage Products\nManage Orders\n4.Logout\n\n");
+        printf("Enter your choice: ");
+        scanf("%d",&ch);
+        switch(ch)
+        {
+        case 1:
+            manage_users();
+            break;
+        case 2:
+            //manage_products();
+            break;
+        case 3:
+            //manage_orders();
+            break;
+        case 4:
+            return;
+        default:
+            printf("Wrong option Entered, Try again.\n");
+
+        }
+    }
+}
+
 int main()
 {
     int ch1,ch2,user_wrong_login=0,admin_wrong_login=0;
@@ -246,6 +323,7 @@ int main()
         system("cls");
         printf("ONLINE SHOPPING APPLICATION\n\n");
         printf("1.Admin Login\n2.User Login/Register\n3.Exit\n");
+        printf("Enter your choice: ");
         scanf("%d",&ch1);
         switch(ch1)
         {
@@ -254,7 +332,7 @@ int main()
             if(login_admin())
             {
                 admin_wrong_login = 0;
-                //admin_home();
+                admin_home();
             }
             else
             {
@@ -268,7 +346,8 @@ int main()
             while(1)
             {
                 system("cls");
-                printf("1.Login\n2.Sign up\n3.Logout\n\n");
+                printf("1.Login\n2.Sign up\n3.Exit\n\n");
+                printf("Enter your choice: ");
                 scanf("%d",&ch2);
                 switch(ch2)
                 {
@@ -307,5 +386,8 @@ int main()
         }
 
     }
+    free(user_front);
+    free(user_temp);
+    free(user_end);
     return 0;
 }
