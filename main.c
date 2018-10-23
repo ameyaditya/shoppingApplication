@@ -53,7 +53,7 @@ typedef struct{
     int no_of_products;
     float price;
     float rating;
-    int discount;
+   // int discount;
     seller p_seller;
 }product;
 typedef struct{
@@ -89,9 +89,9 @@ void insert_product_tolist()
     }
     else
     {
-        user_end->next = user_temp;
-        user_temp->prev = user_end;
-        user_end = user_temp;
+        product_end->next = product_temp;
+        product_temp->prev = product_end;
+        product_end = product_temp;
     }
 }
 
@@ -280,62 +280,6 @@ void user_register()
     printf("Registration Successful\n");
     system("pause");
 }
-void product_register()
-{
-    product ;
-    user_temp = (struct user_list *)malloc(sizeof(struct user_list));
-    char password1[20],password2[20];
-    //read_counters();
-    main_counter.u_ID++;
-    usr.u_ID = main_counter.u_ID;
-    printf("Enter your Details\n\n");
-    printf("First Name: ");
-    fflush(stdin);
-    gets(usr.u_name.fname);
-    fflush(stdin);
-    printf("Last Name: ");
-    gets(usr.u_name.lname);
-    fflush(stdin);
-    printf("Address\n");
-    printf("Door No: ");
-    gets(usr.u_address.door_no);
-    fflush(stdin);
-    printf("Address line 1: ");
-    gets(usr.u_address.address_line1);
-    fflush(stdin);
-    printf("City: ");
-    gets(usr.u_address.city);
-    fflush(stdin);
-    printf("State: ");
-    gets(usr.u_address.state);
-    fflush(stdin);
-    printf("Enter Email ID: ");
-    gets(usr.email_id);
-    printf("Enter phone number: ");
-    gets(usr.phone_no);
-    fflush(stdin);
-    reenter_password:
-    printf("Password: ");
-    gets(password1);
-    fflush(stdin);
-    printf("Reenter Password: ");
-    gets(password2);
-    fflush(stdin);
-    if(strcmp(password1,password2) != 0)
-    {
-        printf("Passwords dont match Enter again\n");
-        goto reenter_password;
-    }
-    usr.prime = 0;
-    user_temp->data = usr;
-    user_temp->next = NULL;
-    user_temp->prev = NULL;
-    insert_user_tolist();
-    write_counters(main_counter);
-    write_user(usr);
-    printf("Registration Successful\n");
-    system("pause");
-}
 
 void view_users()
 {
@@ -455,6 +399,90 @@ void deleteinfile(int uid)
     }
     fclose(user_data);
 }
+
+void write_product(product p)
+{
+    FILE *register_product = fopen("data/product_details.dat","a");
+    if(register_product == NULL)
+    {
+        printf("cannot created a file\n");
+        exit(EXIT_FAILURE);
+    }
+    fwrite(&p, sizeof(product),1,register_product);
+    fclose(register_product);
+}
+
+void product_register()
+{
+    product pd;
+    product_temp = (struct product_list *)malloc(sizeof(struct product_list));
+    char password1[20],password2[20];
+    //read_counters();
+    main_counter.p_ID++;
+    pd.p_ID = main_counter.p_ID;
+    printf("Enter your Details\n\n");
+    printf("Product Name: ");
+    fflush(stdin);
+    gets(pd.p_name);
+    printf("Describe the Product\n");
+    fflush(stdin);
+    gets(pd.descr);
+    printf("Product Remaining: ");
+    fflush(stdin);
+    scanf("%d",&pd.no_of_products);
+    printf("Enter the Price of Product: ");
+    fflush(stdin);
+    scanf("%f",pd.price);
+    pd.rating=0.0;
+    printf("Enter the Seller First Name: ");
+    fflush(stdin);
+    gets(pd.p_seller.s_name.fname);
+    fflush(stdin);
+    printf("Enter the Seller Last Name: ");
+    gets(pd.p_seller.s_name.lname);
+    fflush(stdin);
+    printf("Enter the Seller Address\n");
+    printf("Door No: ");
+    gets(pd.p_seller.s_address.door_no);
+    fflush(stdin);
+    printf("Address line 1: ");
+    gets(pd.p_seller.s_address.address_line1);
+    fflush(stdin);
+    printf("City: ");
+    gets(pd.p_seller.s_address.city);
+    fflush(stdin);
+    printf("State: ");
+    gets(pd.p_seller.s_address.state);
+    fflush(stdin);
+    printf("Enter phone number: ");
+    gets(pd.p_seller.phone_no);
+    fflush(stdin);
+    product_temp->data = pd;
+    product_temp->next = NULL;
+    product_temp->prev = NULL;
+    insert_product_tolist();
+    write_counters(main_counter);
+    write_product(pd);
+    printf("Product Adding Successful\n");
+    system("pause");
+}
+
+void view_product()
+{
+    product_temp = product_front;
+    printf("Product ID \tProduct NAME \tRemaining Product \tPrice \tRating \n");
+    while(product_temp != NULL)
+    {
+        printf("%7d\t",product_temp->data.p_ID);
+        printf("%9s\t",product_temp->data.p_name);
+        printf("%4d\t",product_temp->data.no_of_products);
+        printf("%9f\t",product_temp->data.price);
+        printf("%5f\t",product_temp->data.rating);
+        product_temp = product_temp->next;
+    }
+    system("pause");
+}
+
 void manage_users()
 {
     while(1)
@@ -517,7 +545,7 @@ void manage_products()
             product_register();
             break;
         case 2:
-            view_users();
+            view_product();
             break;
         case 3:
             printf("Enter your ID to Delete: ");
