@@ -483,6 +483,113 @@ void view_product()
     system("pause");
 }
 
+void displayele(PRODUCT *ptr)
+{
+    printf("DETAILS\n");
+    printf("-------\n");
+    printf("Product ID: %d\n",ptr->data.p_ID);
+    printf("Product Name: %s \n",ptr->data.p_name);
+    printf("Price: %f\n",ptr->data.price);
+    printf("Seller Name: %s %s \n",ptr->data.p_seller.s_name.fname,ptr->data.p_seller.s_name.lname);
+    //need to show descp ,rating
+    //seller details?
+    printf("\n");
+}
+int deleteinlist(int pid)
+{
+    char ch;
+    product_temp = product_front;
+    if(product_front == NULL)
+        return FALSE;
+    else if(product_front->next == NULL)
+    {
+        if(product_front->data.p_ID == pid)
+        {
+            displayele(product_front);
+            printf("Do you wanna delete the above Product(Y/N)");
+            fflush(stdin);
+            scanf("%c",&ch);
+            if(ch == 'Y' || ch =='y')
+            {
+                product_front = NULL;
+                product_end = NULL;
+                free(product_temp);
+                return TRUE;
+            }
+        }
+
+    }
+    else
+    {
+        if(product_front->data.p_ID == pid)
+        {
+            displayele(product_front);
+            printf("Do you wanna delete the above Product(Y/N)");
+            fflush(stdin);
+            scanf("%c",&ch);
+            if(ch=='Y' || ch=='y')
+            {
+                product_temp = product_front;
+                product_front = product_front->next;
+                product_front->prev = NULL;
+                free(product_temp);
+                return TRUE;
+            }
+
+        }
+        else if(product_end->data.p_ID == pid)
+        {
+            displayele(user_end);
+            printf("Do you wanna delete the above Product(Y/N)");
+            fflush(stdin);
+            scanf("%c",&ch);
+            if(ch == 'Y' || ch=='y')
+            {
+                product_temp = product_end;
+                product_end = product_end->prev;
+                product_end->next = NULL;
+                free(product_temp);
+                return TRUE;
+            }
+        }
+        else
+        {
+            while(product_temp!=NULL)
+            {
+                if(product_temp->data.p_ID == pid)
+                {
+                    displayele(product_temp);
+                    printf("Do you wanna delete the above Product(Y/N)");
+                    fflush(stdin);
+                    scanf("%c",&ch);
+                    if(ch == 'Y' || ch =='y')
+                    {
+                        product_temp->prev->next = product_temp->next;
+                        product_temp->next->prev = product_temp->prev;
+                        free(product_temp);
+                        return TRUE;
+                    }
+                }
+            }
+        }
+    }
+    return FALSE;
+}
+
+void deleteinfile(int pid)
+{
+    FILE *product_data = fopen("data/product_details.dat","w");
+    USER *temporary;
+    user t2;
+    temporary = product_front;
+    while(temporary!= NULL)
+    {
+        t2 = temporary->data;
+        fwrite(&t2,sizeof(product),1,product_data);
+        temporary = temporary->next;
+    }
+    fclose(product_data);
+}
 void manage_users()
 {
     while(1)
