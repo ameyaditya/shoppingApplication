@@ -75,9 +75,9 @@ PRODUCT *product_front =NULL, *product_end=NULL, *product_temp=NULL;
 void insert_product_tolist()
 {
     if(product_front == NULL)
-    {s
-        user_front = user_temp;
-        user_end = user_temp;
+    {
+        product_front = product_temp;
+        product_end = product_temp;
     }
     else
     {
