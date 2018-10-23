@@ -320,7 +320,7 @@ int deleteinlist(int uid)
         {
             displayele(user_end);
             printf("Do you wanna delete the above user(Y/N)");
-            fflsuh(stdin);
+            fflush(stdin);
             scanf("%c",&ch);
             if(ch == 'Y' || ch=='y')
             {
@@ -368,6 +368,20 @@ void deleteinfile(int uid)
     }
     fclose(user_data);
 }
+int search_user(int uid)
+{
+    user_temp = user_front;
+    while(user_temp!= NULL)
+    {
+        if(user_temp->data.u_ID == uid)
+        {
+            displayele(user_temp);
+            system("pause");
+            return TRUE;
+        }
+    }
+    return TRUE;
+}
 void manage_users()
 {
     while(1)
@@ -400,9 +414,18 @@ void manage_users()
             else
             {
                 printf("Couldn't delete the above user\n");
+                system("pause");
             }
             break;
         case 4:
+            printf("Enter User ID: ");
+            fflush(stdin);
+            scanf("%d",&uid);
+            if(!search_user(uid))
+            {
+                printf("user details not in the database\n");
+                system("pause");
+            }
             break;
         case 5:
             break;
