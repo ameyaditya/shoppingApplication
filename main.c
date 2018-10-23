@@ -64,6 +64,28 @@ typedef struct{
     product o_product;
     address shipping_address;
 }order;
+struct product_list{
+    product data;
+    struct product_list *next;
+    struct product_list *prev;
+};
+
+typedef struct product_list PRODUCT;
+PRODUCT *product_front =NULL, *product_end=NULL, *product_temp=NULL;
+void insert_product_tolist()
+{
+    if(product_front == NULL)
+    {s
+        user_front = user_temp;
+        user_end = user_temp;
+    }
+    else
+    {
+        user_end->next = user_temp;
+        user_temp->prev = user_end;
+        user_end = user_temp;
+    }
+}
 
 struct user_list{
     user data;
@@ -249,6 +271,62 @@ void user_register()
     printf("Registration Successful\n");
     system("pause");
 }
+void product_register()
+{
+    product ;
+    user_temp = (struct user_list *)malloc(sizeof(struct user_list));
+    char password1[20],password2[20];
+    //read_counters();
+    main_counter.u_ID++;
+    usr.u_ID = main_counter.u_ID;
+    printf("Enter your Details\n\n");
+    printf("First Name: ");
+    fflush(stdin);
+    gets(usr.u_name.fname);
+    fflush(stdin);
+    printf("Last Name: ");
+    gets(usr.u_name.lname);
+    fflush(stdin);
+    printf("Address\n");
+    printf("Door No: ");
+    gets(usr.u_address.door_no);
+    fflush(stdin);
+    printf("Address line 1: ");
+    gets(usr.u_address.address_line1);
+    fflush(stdin);
+    printf("City: ");
+    gets(usr.u_address.city);
+    fflush(stdin);
+    printf("State: ");
+    gets(usr.u_address.state);
+    fflush(stdin);
+    printf("Enter Email ID: ");
+    gets(usr.email_id);
+    printf("Enter phone number: ");
+    gets(usr.phone_no);
+    fflush(stdin);
+    reenter_password:
+    printf("Password: ");
+    gets(password1);
+    fflush(stdin);
+    printf("Reenter Password: ");
+    gets(password2);
+    fflush(stdin);
+    if(strcmp(password1,password2) != 0)
+    {
+        printf("Passwords dont match Enter again\n");
+        goto reenter_password;
+    }
+    usr.prime = 0;
+    user_temp->data = usr;
+    user_temp->next = NULL;
+    user_temp->prev = NULL;
+    insert_user_tolist();
+    write_counters(main_counter);
+    write_user(usr);
+    printf("Registration Successful\n");
+    system("pause");
+}
 
 void view_users()
 {
@@ -320,7 +398,7 @@ int deleteinlist(int uid)
         {
             displayele(user_end);
             printf("Do you wanna delete the above user(Y/N)");
-            fflush(stdin);
+            fflsuh(stdin);
             scanf("%c",&ch);
             if(ch == 'Y' || ch=='y')
             {
@@ -368,20 +446,6 @@ void deleteinfile(int uid)
     }
     fclose(user_data);
 }
-int search_user(int uid)
-{
-    user_temp = user_front;
-    while(user_temp!= NULL)
-    {
-        if(user_temp->data.u_ID == uid)
-        {
-            displayele(user_temp);
-            system("pause");
-            return TRUE;
-        }
-    }
-    return TRUE;
-}
 void manage_users()
 {
     while(1)
@@ -414,18 +478,55 @@ void manage_users()
             else
             {
                 printf("Couldn't delete the above user\n");
-                system("pause");
             }
             break;
         case 4:
-            printf("Enter User ID: ");
-            fflush(stdin);
+            break;
+        case 5:
+            break;
+        case 6:
+            return;
+        default:
+            printf("Wrong Choice entered\n");
+        }
+    }
+}
+void manage_products()
+{
+    while(1)
+    {
+        int ch,uid,res;
+        system("cls");
+        printf("ONLINE SHOPPING APPLICATION\n\n");
+        printf("1.Add Products\n2.View Products\n3.Delete Products by Name\n4.View Products detail by Name\n6.Exit\n");
+        printf("Enter your choice: ");
+        fflush(stdin);
+        scanf("%d",&ch);
+        switch(ch)
+        {
+        case 1:
+            product_register();
+            break;
+        case 2:
+            view_users();
+            break;
+        case 3:
+            printf("Enter your ID to Delete: ");
             scanf("%d",&uid);
-            if(!search_user(uid))
+            res = deleteinlist(uid);
+            if(res)
             {
-                printf("user details not in the database\n");
-                system("pause");
+                printf("Deleted User\n");
+                deleteinfile(uid);
+                main_counter.u_ID--;
+                write_counters(main_counter);
             }
+            else
+            {
+                printf("Couldn't delete the above user\n");
+            }
+            break;
+        case 4:
             break;
         case 5:
             break;
