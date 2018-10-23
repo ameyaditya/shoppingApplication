@@ -351,7 +351,7 @@ int deleteinlist(int uid)
         {
             displayele(user_end);
             printf("Do you wanna delete the above user(Y/N)");
-            fflsuh(stdin);
+            fflush(stdin);
             scanf("%c",&ch);
             if(ch == 'Y' || ch=='y')
             {
@@ -432,7 +432,7 @@ void product_register()
     scanf("%d",&pd.no_of_products);
     printf("Enter the Price of Product: ");
     fflush(stdin);
-    scanf("%f",pd.price);
+    scanf("%f",&pd.price);
     pd.rating=0.0;
     printf("Enter the Seller First Name: ");
     fflush(stdin);
@@ -591,7 +591,7 @@ void admin_home()
             manage_users();
             break;
         case 2:
-            //manage_products();
+            manage_products();
             break;
         case 3:
             //manage_orders();
@@ -622,7 +622,7 @@ product return_product(int p_id)
 void place_order()
 {
     int p_id;
-    peintf("Enter Product ID to Place order: ");
+    printf("Enter Product ID to Place order: ");
     scanf("%d",&p_id);
     //check if p_ID exists and ask to enter again
     order od;
@@ -648,7 +648,7 @@ void user_home()
         switch(ch)
         {
         case 1:
-            view_products();
+            view_product();
             break;
         case 2:
             //manage_products();
