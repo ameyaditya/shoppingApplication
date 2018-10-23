@@ -70,6 +70,14 @@ struct product_list{
     struct product_list *prev;
 };
 
+struct order_list{
+    order data;
+    struct order_list *next;
+    struct order_list *prev;
+};
+user currentusr;
+typedef struct order_list ORDER;
+ORDER *order_front =NULL, *order_end = NULL, *order_temp = NULL;
 typedef struct product_list PRODUCT;
 PRODUCT *product_front =NULL, *product_end=NULL, *product_temp=NULL;
 void insert_product_tolist()
@@ -196,6 +204,7 @@ int login_user()
         if(strcmp(user_temp->data.email_id,login_name) == 0 && strcmp(user_temp->data.password,password) == 0)
         {
             match = 1;
+            currentusr = user_temp->data;
             break;
         }
         user_temp = user_temp->next;
@@ -567,11 +576,70 @@ void admin_home()
         }
     }
 }
+void register_order(int p_id, int u_id)
+{
+    order od;
+    order_temp = (ORDER*)malloc(sizeof(ORDER));
+    main_counter.o_ID++;
+    od.o_ID = main_counter.o_ID;
+    od.p_ID = p_id;
+    od.u_ID = u_id;
+}
 
+product return_product(int p_id)
+{
+    product_temp = product_front;
+
+}
+void place_order()
+{
+    int p_id;
+    peintf("Enter Product ID to Place order: ");
+    scanf("%d",&p_id);
+    //check if p_ID exists and ask to enter again
+    order od;
+    order_temp = (ORDER*)malloc(sizeof(ORDER));
+    main_counter.o_ID++;
+    od.o_ID = main_counter.o_ID;
+    od.p_ID = p_id;
+    od.u_ID = currentusr.u_ID;
+
+
+
+}
+void user_home()
+{
+   int ch;
+    while(1)
+    {
+        system("cls");
+        printf("ONLINE SHOPPING APPLICATION\n\n");
+        printf("1. View Product\n2.PLace Order by Product ID\n3.View Orders\n4.Edit Details\n5.Delete Account\n6.Logout\n\n");
+        printf("Enter your choice: ");
+        scanf("%d",&ch);
+        switch(ch)
+        {
+        case 1:
+            view_products();
+            break;
+        case 2:
+            //manage_products();
+            place_order();
+            break;
+        case 3:
+            //manage_orders();
+            break;
+        case 4:
+            return;
+        default:
+            printf("Wrong option Entered, Try again.\n");
+
+        }
+    }
+}
 
 int main()
 {
-
     int ch1,ch2,user_wrong_login=0,admin_wrong_login=0;
     FILE *load_impt = fopen("data/counters.dat","r");
     if(load_impt == NULL)
