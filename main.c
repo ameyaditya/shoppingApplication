@@ -688,7 +688,7 @@ void manage_products()
 {
     while(1)
     {
-        int ch,uid,res;
+        int ch,pid,res;
         system("cls");
         printf("ONLINE SHOPPING APPLICATION\n\n");
         printf("1. Add Products\n2. View Products\n3. Delete Products by Name\n4. View Products detail by Name\n5. Exit\n");
@@ -707,25 +707,23 @@ void manage_products()
             case 3:
                 printf("Enter your ID to Delete: ");
                 scanf("%d",&uid);
-                res = deleteinlist(uid);
+                res = deleteinlist(pid);
 
                 if(res)
                 {
                     printf("Deleted User\n");
-                    deleteinfile(uid);
-                    main_counter.u_ID--;
+                    deleteinfile(pid);
+                    main_counter.p_ID--;
                     write_counters(main_counter);
                 }
                 else
                 {
-                    printf("Couldn't delete the above user\n");
+                    printf("Couldn't delete the above Product\n");
                 }
                 break;
             case 4:
                 break;
             case 5:
-                break;
-            case 6:
                 return;
             default:
                 printf("Wrong Choice entered\n");
@@ -817,7 +815,12 @@ void user_home()
                 //manage_orders();
                 break;
             case 4:
-                return;
+                break;
+            case 5:
+                break;
+            case 6:
+                //logout
+                return ;
             default:
                 printf("Wrong option Entered, Try again.\n");
         }
