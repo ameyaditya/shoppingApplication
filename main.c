@@ -706,7 +706,7 @@ void manage_products()
                 break;
             case 3:
                 printf("Enter your ID to Delete: ");
-                scanf("%d",&uid);
+                scanf("%d",&pid);
                 res = deleteinlist(pid);
 
                 if(res)
