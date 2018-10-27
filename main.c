@@ -52,6 +52,7 @@ typedef struct {
     char password[20];
     int i;
     int o_ID[100];
+    int nooforders;
 }user;
 
 typedef struct{
@@ -71,7 +72,6 @@ typedef struct{
     int p_ID;
     user o_user;
     product o_product;
-    address shipping_address;
 }order;
 
 struct product_list{
@@ -248,7 +248,7 @@ void write_user(user u)
 
     if(register_user == NULL)
     {
-        printf("cannot created a file\n");
+        printf("cannot create a file\n");
         exit(EXIT_FAILURE);
     }
     fwrite(&u, sizeof(user),1,register_user);
@@ -258,7 +258,7 @@ void write_user(user u)
 void user_register()
 {
     user usr;
-    user_temp = (struct user_list *)malloc(sizeof(struct user_list));
+    user_temp = (USER *)malloc(sizeof(USER));
     char password1[20],password2[20];
     //read_counters();
     main_counter.u_ID++;
@@ -296,6 +296,7 @@ void user_register()
     printf("Reenter Password: ");
     gets(password2);
     fflush(stdin);
+    usr.nooforders = 0;
 
     if(strcmp(password1,password2) != 0)
     {
@@ -776,12 +777,93 @@ product return_product(int p_id)
     product_temp = product_front;
 
 }
-
+void update_current_user()
+{
+    currentusr.nooforders++;
+    user_temp = user_front;
+    while(user_temp!= NULL)
+    {
+        if(user_temp->data.u_ID == currentusr.u_ID)
+        {
+            user_temp->data.nooforders++;
+        }
+        user_temp = user_temp->next;
+    }
+}
+void write_user_file()
+{
+    FILE *users = fopen("data/user_details.dat","w");
+    user t;
+    user_temp = user_front;
+    while(user_temp!=NULL)
+    {
+        t = user_temp->data;
+        fwrite(&t,sifeof(user),1,users);
+        user_temp = user_temp->next;
+    }
+    fclose(users);
+}
+void write_order(order o)
+{
+    FILE *register_orders = fopen("data/order_details.dat","a");
+    if(register_orders = NULL)
+    {
+        printf("cannot create a file\n");
+        exit(EXIT_FAILURE);
+    }
+    fwrite(&o,sizeof(order),1,register_orders);
+    fclose(register_orders);
+}
+void insert_order_tolist()
+{
+    if(order_front == NULL)
+    {
+        order_front = order_temp;
+        order_end = order_temp;
+    }
+    else
+    {
+        order_end->next = order_temp;
+        order_temp->prev = order_end;
+        order_end = order_temp;
+    }
+}
+int check_product(int p_id)
+{
+    product_temp = product_front;
+    while(product_temp!=NULL)
+    {
+        if(product_temp->data.p_ID == p_id)
+            return TRUE;
+        product_temp = product_temp->next;
+    }
+    return FALSE;
+}
+product return_product(int p_id)
+{
+    product t;
+    product_temp = product_front;
+    while(product_temp!=NULL)
+    {
+        if(product_temp->data.p_ID == p_id)
+        {
+            t = product_temp->data;
+            return t;
+        }
+        product_temp = product_temp->next;
+    }
+}
 void place_order()
 {
     int p_id;
+    p_id_again:
     printf("Enter Product ID to Place order: ");
     scanf("%d",&p_id);
+    if(!check_product(p_id))
+    {
+        printf("Product ID not in the database.\nEnter valid Product ID\n");
+        goto p_id_again;
+    }
     //check if p_ID exists and ask to enter again
     order od;
     order_temp = (ORDER*)malloc(sizeof(ORDER));
@@ -789,6 +871,16 @@ void place_order()
     od.o_ID = main_counter.o_ID;
     od.p_ID = p_id;
     od.u_ID = currentusr.u_ID;
+    update_current_user();
+    write_user_file();
+    write_counters(main_counter);
+    od.o_user = currentusr;
+    od.o_product = return_product(p_id);
+    order_temp->data = od;
+    order_temp->next = NULL;
+    order_temp->prev = NULL;
+    insert_order_tolist();
+    write_order(od);
 }
 
 void user_home()
