@@ -188,6 +188,42 @@ void load_users()
     fclose(load_user);
 }
 
+void load_products()
+{
+    FILE *load_product=fopen("data/product_details.dat","r");
+    int i = main_counter.p_ID;
+    product loader;
+    while(i>0)
+    {
+        fread(&loader,sizeof(product),1,load_product);
+        product_temp = (PRODUCT*)malloc(sizeof(PRODUCT));
+        product_temp->next = NULL;
+        product_temp->prev = NULL;
+        product_temp->data = loader;
+        insert_product_tolist();
+        i--;
+    }
+    fclose(load_product);
+}
+
+void load_orders()
+{
+    FILE *load_order=fopen("data/order_details.dat","r");
+    int i = main_counter.o_ID;
+    order loader;
+    while(i>0)
+    {
+        fread(&loader,sizeof(order),1,load_order);
+        order_temp = (ORDER*)malloc(sizeof(ORDER));
+        order_temp->next = NULL;
+        order_temp->prev = NULL;
+        order_temp->data = loader;
+        insert_order_tolist();
+        i--;
+    }
+    fclose(load_product);
+}
+
 int login_admin()
 {
     char login_name[100],password[100];
@@ -777,7 +813,7 @@ product return_product(int p_id)
     product_temp = product_front;
 
 }
-void update_current_user()
+void update_current_user(int o_id)
 {
     currentusr.nooforders++;
     user_temp = user_front;
@@ -785,6 +821,7 @@ void update_current_user()
     {
         if(user_temp->data.u_ID == currentusr.u_ID)
         {
+            user_temp->data.o_ID[user_temp->data.nooforders] = o_id;
             user_temp->data.nooforders++;
         }
         user_temp = user_temp->next;
@@ -871,7 +908,7 @@ void place_order()
     od.o_ID = main_counter.o_ID;
     od.p_ID = p_id;
     od.u_ID = currentusr.u_ID;
-    update_current_user();
+    update_current_user(od.o_ID);
     write_user_file();
     write_counters(main_counter);
     od.o_user = currentusr;
@@ -881,6 +918,25 @@ void place_order()
     order_temp->prev = NULL;
     insert_order_tolist();
     write_order(od);
+}
+
+void view_user_orders()
+{
+    int i = currentusr.nooforders,j=0;
+    while(i>0)
+    {
+        order_temp = order_front;
+        while(order_temp!=NULL)
+        {
+            if(order_temp->data.o_ID == currentusr.o_ID[j])
+            {
+                display_order(order_temp->data);
+            }
+            order_temp=order_temp->next;
+        }
+        j++;
+        i--;
+    }
 }
 
 void user_home()
@@ -900,11 +956,10 @@ void user_home()
                 view_product();
                 break;
             case 2:
-                //manage_products();
                 place_order();
                 break;
             case 3:
-                //manage_orders();
+                view_user_orders();
                 break;
             case 4:
                 break;
