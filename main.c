@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include<string.h>
 #include<ctype.h>
-
+#include<time.h>
 #define TRUE 1
 #define FALSE 0
 
@@ -13,7 +13,7 @@ typedef struct {
 
 typedef struct {
     int day,month,year;
-}date;
+}dat;
 
 typedef struct {
     char door_no[10];
@@ -62,6 +62,7 @@ typedef struct{
     int no_of_products;
     float price;
     float rating;
+    int daystodeliver;
    // int discount;
     seller p_seller;
 }product;
@@ -72,6 +73,7 @@ typedef struct{
     int p_ID;
     user o_user;
     product o_product;
+    dat o_date;
 }order;
 
 struct product_list{
@@ -90,10 +92,17 @@ user currentusr;
 
 typedef struct order_list ORDER;
 ORDER *order_front =NULL, *order_end = NULL, *order_temp = NULL;
-
+int monthDays[12] = {31, 28, 31, 30, 31, 30,
+                           31, 31, 30, 31, 30, 31};
 typedef struct product_list PRODUCT;
 PRODUCT *product_front =NULL, *product_end=NULL, *product_temp=NULL;
+dat curdate;
+time_t t = time(NULL);
+struct tm tm = *localtime(&t);
 
+curdate.day = tm.tm_mday;
+curdate.month = tm.tm_mon+1;
+curdate.year = tm.tm_year + 1900;
 void insert_product_tolist()
 {
     if(product_front == NULL)
@@ -169,7 +178,19 @@ void insert_user_tolist()
         user_end = user_temp;
     }
 }
-
+void write_order_file()
+{
+    FILE *orders = fopen("data/order_details.dat","w");
+    orders t;
+    order_temp = order_front;
+    while(order_temp!=NULL)
+    {
+        t = order_temp->data;
+        fwrite(&t,sifeof(order),1,orders);
+        order_temp = order_temp->next;
+    }
+    fclose(orders);
+}
 void load_users()
 {
     FILE *load_user=fopen("data/user_details.dat","r");
@@ -205,16 +226,48 @@ void load_products()
     }
     fclose(load_product);
 }
+int count_leap_years(dat d)
+{
+    int years = d.year;
+    if(d.month<=2)
+        years--;
+    return years/4-years/100+years/400;
+}
+int difference(dat date, int daystodeliver)
+{
+    int i,dif;
+    unsigned long int n1,n2;
+    n1 = date.year*365 + date.day
+    for(i=0;i<date.month-1;i++)
+        n1+= monthDays[i];
+    n1 += count_leap_years(date);
+
+    n2 = curdate.year*365 + curdate.day;
+    for(i=0;i<curdate.month-1;i++)
+        n2+=monthDays[i];
+    n2+= count_leap_years(curdate);
+    dif = n2-n1;
+    if(dif >= daystodeliver)
+        return 0;
+    else
+        return daystodeliver-diff;
+
+}
 
 void load_orders()
 {
     FILE *load_order=fopen("data/order_details.dat","r");
-    int i = main_counter.o_ID;
+    int i = main_counter.o_ID,noofdays;
     order loader;
     while(i>0)
     {
         fread(&loader,sizeof(order),1,load_order);
         order_temp = (ORDER*)malloc(sizeof(ORDER));
+        if(loader.o_product.daystodeliver > 0)
+        {
+            noofdays = difference(loader.o_date,loader.o_product.daystodeliver);
+            loader.o_product.daystodeliver = noofdays;
+        }
         order_temp->next = NULL;
         order_temp->prev = NULL;
         order_temp->data = loader;
@@ -510,6 +563,9 @@ void product_register()
     printf("Enter the Price of Product: ");
     fflush(stdin);
     scanf("%f",&pd.price);
+    printf("Enter number of days to deliver: ");
+    fflush(stdin);
+    scanf("%d",&pd.daystodeliver);
     pd.rating=0.0;
     printf("Enter the Seller First Name: ");
     fflush(stdin);
@@ -798,16 +854,6 @@ void admin_home()
     }
 }
 
-void register_order(int p_id, int u_id)
-{
-    order od;
-    order_temp = (ORDER*)malloc(sizeof(ORDER));
-    main_counter.o_ID++;
-    od.o_ID = main_counter.o_ID;
-    od.p_ID = p_id;
-    od.u_ID = u_id;
-}
-
 product return_product(int p_id)
 {
     product_temp = product_front;
@@ -901,7 +947,6 @@ void place_order()
         printf("Product ID not in the database.\nEnter valid Product ID\n");
         goto p_id_again;
     }
-    //check if p_ID exists and ask to enter again
     order od;
     order_temp = (ORDER*)malloc(sizeof(ORDER));
     main_counter.o_ID++;
@@ -913,6 +958,7 @@ void place_order()
     write_counters(main_counter);
     od.o_user = currentusr;
     od.o_product = return_product(p_id);
+    od.o_date = curdate;
     order_temp->data = od;
     order_temp->next = NULL;
     order_temp->prev = NULL;
@@ -920,9 +966,15 @@ void place_order()
     write_order(od);
 }
 
+void display_order(order data)
+{
+    //fill the printf statements here
+}
+
 void view_user_orders()
 {
     int i = currentusr.nooforders,j=0;
+    printf("ORDER ID \tPRODUCT NAME \tORDER DATE \t ")
     while(i>0)
     {
         order_temp = order_front;
@@ -986,7 +1038,9 @@ int main()
     fclose(load_impt);
     read_counters();
     load_users();
-
+    load_products();
+    load_orders();
+    write_order_file();
     while(1)
     {
         system("cls");
