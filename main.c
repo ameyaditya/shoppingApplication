@@ -92,6 +92,8 @@ user currentusr;
 
 typedef struct order_list ORDER;
 ORDER *order_front =NULL, *order_end = NULL, *order_temp = NULL;
+ORDER *order_p_front = NULL, *order_p_end = NULL, *order_p_temp = NULL;
+
 int monthDays[12] = {31, 28, 31, 30, 31, 30,
                            31, 31, 30, 31, 30, 31};
 typedef struct product_list PRODUCT;
@@ -181,7 +183,7 @@ void insert_user_tolist()
 void write_order_file()
 {
     FILE *orders = fopen("data/order_details.dat","w");
-    orders t;
+    order t;
     order_temp = order_front;
     while(order_temp!=NULL)
     {
@@ -253,7 +255,6 @@ int difference(dat date, int daystodeliver)
         return daystodeliver-diff;
 
 }
-
 void load_orders()
 {
     FILE *load_order=fopen("data/order_details.dat","r");
@@ -268,6 +269,7 @@ void load_orders()
             noofdays = difference(loader.o_date,loader.o_product.daystodeliver);
             loader.o_product.daystodeliver = noofdays;
         }
+        loader.o_user = updated_user(loader.o_user);
         order_temp->next = NULL;
         order_temp->prev = NULL;
         order_temp->data = loader;
@@ -862,6 +864,7 @@ product return_product(int p_id)
 void update_current_user(int o_id)
 {
     currentusr.nooforders++;
+    currentusr.prime = currentusr.nooforders/6;
     user_temp = user_front;
     while(user_temp!= NULL)
     {
@@ -869,6 +872,7 @@ void update_current_user(int o_id)
         {
             user_temp->data.o_ID[user_temp->data.nooforders] = o_id;
             user_temp->data.nooforders++;
+            user_temp->data.prime = currentusr.prime;
         }
         user_temp = user_temp->next;
     }
@@ -958,6 +962,7 @@ void place_order()
     write_counters(main_counter);
     od.o_user = currentusr;
     od.o_product = return_product(p_id);
+    od.o_product.daystodeliver = ceil(od.o_product.daystodeliver - (0.5 * od.o_user.prime));
     od.o_date = curdate;
     order_temp->data = od;
     order_temp->next = NULL;
