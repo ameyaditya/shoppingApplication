@@ -940,6 +940,40 @@ product return_product(int p_id)
         product_temp = product_temp->next;
     }
 }
+void write_p_q()
+{
+    ORDER ot;
+    if(order_p_front == NULL)
+    {
+        order_p_front = order_p_temp;
+        order_p_end = order_p_temp;
+    }
+    else
+    {
+        ot = order_p_front;
+        while(ot != NULL && ot->data.o_user.prime >= order_p_temp->data.o_user.prime)
+            ot = ot->next;
+        if(ot == order_p_front)
+        {
+            order_p_front->prev = order_p_temp;
+            order_p_temp->next = order_p_front;
+            order_p_front = order_p_temp;
+        }
+        else if(ot!= NULL)
+        {
+            ot->prev->next = order_p_temp;
+            order_p_temp->prev = ot->prev;
+            order_p_temp->next = ot;
+            ot->prev = order_p_temp;
+        }
+        else
+        {
+            order_p_end->next = order_p_temp;
+            order_p_temp->prev = order_p_end;
+            order_p_end = order_p_temp;
+        }
+    }
+}
 void place_order()
 {
     int p_id;
@@ -953,6 +987,7 @@ void place_order()
     }
     order od;
     order_temp = (ORDER*)malloc(sizeof(ORDER));
+    order_p_temp = (ORDER*)malloc(sizeof(ORDER));
     main_counter.o_ID++;
     od.o_ID = main_counter.o_ID;
     od.p_ID = p_id;
@@ -967,6 +1002,15 @@ void place_order()
     order_temp->data = od;
     order_temp->next = NULL;
     order_temp->prev = NULL;
+    order_p_temp->data.o_date = curdate;
+    order_p_temp->data.o_ID = main_counter.o_ID;
+    order_p_temp->data.o_product = od.o_product;
+    order_p_temp->data.o_user = od.o_user;
+    order_p_temp->data.p_ID = od.p_ID;
+    order_p_temp->data.o_ID = od.o_ID;
+    order_p_temp->next = NULL;
+    order_p_temp->prev = NULL;
+    write_p_q();
     insert_order_tolist();
     write_order(od);
 }
