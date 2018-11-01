@@ -38,9 +38,10 @@ typedef struct {
     int u_ID;
     int p_ID;
     int o_ID;
+    int o_p_ID;
 }counters;
 
-counters main_counter={0,0,0};
+counters main_counter={0,0,0,0};
 
 typedef struct {
     int u_ID;
@@ -201,7 +202,7 @@ void load_users()
     while(i>0)
     {
         fread(&loader,sizeof(user),1,load_user);
-        user_temp = (struct user_list*)malloc(sizeof(struct user_list));
+        user_temp = (USER*)malloc(sizeof(USER));
         user_temp->next = NULL;
         user_temp->prev = NULL;
         user_temp->data = loader;
@@ -940,6 +941,35 @@ product return_product(int p_id)
         product_temp = product_temp->next;
     }
 }
+void writefilepq()
+{
+    order temppq;
+    FILE *orderpq = fopen("data/priority_order.dat","w");
+    if(orderpq == NULL)
+    {
+        printf("File can't be created.\n");
+        exit(EXIT_FAILURE);
+    }
+    order_p_temp = order_p_front;
+    while(order_p_temp!= NULL)
+    {
+        temppq = order_p_temp->data;
+        fwrite(&temppq, sizeof(order), 1, orderpq);
+        order_p_temp = order_p_temp->next;
+    }
+    fclose(orderpq);
+}
+void write_p_order(order opq)
+{
+    FILE *writeopq = fopen("data/priority_order.dat","a");
+    if(writeopq == NULL)
+    {
+        printf("File couldn't be created");
+        exit(EXIT_FAILURE);
+    }
+    fwrite(&opq, sizeof(order), 1, writeopq);
+    fclose(writeopq);
+}
 void write_p_q()
 {
     ORDER ot;
@@ -973,6 +1003,49 @@ void write_p_q()
             order_p_end = order_p_temp;
         }
     }
+    write_p_order(ot->data);
+    main_counter.o_p_ID++;
+    write_counters(main_counter);
+}
+void insert_opq_tolist()
+{
+    if(order_p_front == NULL)
+    {
+        order_p_front = order_p_temp;
+        order_p_end = order_p_temp;
+    }
+    else
+    {
+        order_p_end->next = order_p_temp;
+        order_p_temp->prev = order_p_end;
+        order_p_end = order_p_temp;
+    }
+}
+int checkorder(order test)
+{
+    int dif;
+    dif = difference(test.d, )
+}
+void load_p_orders()
+{
+    FILE *load_order = fopen("data/priority_order.dat","r");
+    int i = main_counter.o_p_ID;
+    order loader;
+    while(i>0)
+    {
+        fread(&loader, sizeof(order), 1, load_order);
+        if(checkorder(loader))
+        {
+            order_p_temp = (ORDER*)malloc(sizeof(ORDER));
+            order_p_temp->data = loader;
+            order_p_temp->next = NULL;
+            order_p_temp->prev = NULL;
+            insert_poq_tolist();
+        }
+        i--;
+    }
+    fclose(load_order);
+
 }
 void place_order()
 {
