@@ -101,12 +101,8 @@ int monthDays[12] = {31, 28, 31, 30, 31, 30,
 typedef struct product_list PRODUCT;
 PRODUCT *product_front =NULL, *product_end=NULL, *product_temp=NULL;
 dat curdate;
-time_t t = time(NULL);
-struct tm tm = *localtime(&t);
-
-curdate.day = tm.tm_mday;
-curdate.month = tm.tm_mon+1;
-curdate.year = tm.tm_year + 1900;
+time_t t;
+struct tm *tm;
 void insert_product_tolist()
 {
     if(product_front == NULL)
@@ -190,7 +186,7 @@ void write_order_file()
     while(order_temp!=NULL)
     {
         t = order_temp->data;
-        fwrite(&t,sifeof(order),1,orders);
+        fwrite(&t,sizeof(order),1,orders);
         order_temp = order_temp->next;
     }
     fclose(orders);
@@ -241,7 +237,7 @@ int difference(dat date, int daystodeliver)
 {
     int i,dif;
     unsigned long int n1,n2;
-    n1 = date.year*365 + date.day
+    n1 = date.year*365 + date.day;
     for(i=0;i<date.month-1;i++)
         n1+= monthDays[i];
     n1 += count_leap_years(date);
@@ -254,7 +250,7 @@ int difference(dat date, int daystodeliver)
     if(dif >= daystodeliver)
         return 0;
     else
-        return daystodeliver-diff;
+        return daystodeliver-dif;
 
 }
 void load_orders()
@@ -278,7 +274,7 @@ void load_orders()
         insert_order_tolist();
         i--;
     }
-    fclose(load_product);
+    fclose(load_order);
 }
 
 int login_admin()
@@ -608,7 +604,7 @@ void product_register()
 void view_product()
 {
     product_temp = product_front;
-    printf("Product ID \tProduct NAME \tRemaining Products \tPrice \tRating \n");
+    printf("Product ID \tProduct NAME \tRemaining Products \tPrice \n");
 
     while(product_temp != NULL)
     {
@@ -616,7 +612,7 @@ void view_product()
         printf("%9s\t",product_temp->data.p_name);
         printf("%4d\t",product_temp->data.no_of_products);
         printf("%9f\t",product_temp->data.price);
-        printf("%5f\t",product_temp->data.rating);
+        //printf("%5f\t",product_temp->data.rating);
         product_temp = product_temp->next;
     }
     system("pause");
@@ -901,7 +897,7 @@ void manage_products()
             case 3:
                 printf("Enter your ID to Delete: ");
                 scanf("%d",&pid);
-                res = deleteproductinfile(pid);
+                res = deleteproductinlist(pid);
 
                 if(res)
                 {
@@ -979,7 +975,7 @@ void manage_orders()
             case 3:
                 printf("Enter your Order to search: ");
                 scanf("%d",&oid);
-                if(!display_order_details())
+                if(!display_order_details(oid))
                     printf("Order Details not found.\n");
                 break;
             case 4:
@@ -1019,12 +1015,6 @@ void admin_home()
         }
     }
 }
-
-product return_product(int p_id)
-{
-    product_temp = product_front;
-
-}
 void update_current_user(int o_id)
 {
     currentusr.nooforders++;
@@ -1049,10 +1039,23 @@ void write_user_file()
     while(user_temp!=NULL)
     {
         t = user_temp->data;
-        fwrite(&t,sifeof(user),1,users);
+        fwrite(&t,sizeof(user),1,users);
         user_temp = user_temp->next;
     }
     fclose(users);
+}
+void write_product_file()
+{
+    FILE *products = fopen("data/product_details.dat","w");
+    product t;
+    product_temp = product_front;
+    while(product_temp!=NULL)
+    {
+        t = product_temp->data;
+        fwrite(&t,sizeof(product),1,products);
+        product_temp = product_temp->next;
+    }
+    fclose(products);
 }
 void write_order(order o)
 {
@@ -1084,8 +1087,12 @@ int check_product(int p_id)
     product_temp = product_front;
     while(product_temp!=NULL)
     {
-        if(product_temp->data.p_ID == p_id)
+        if(product_temp->data.p_ID == p_id && product_temp->data.no_of_products > 0)
+        {
+            product_temp->data.no_of_products--;
+            write_product_file();
             return TRUE;
+        }
         product_temp = product_temp->next;
     }
     return FALSE;
@@ -1135,7 +1142,7 @@ void write_p_order(order opq)
 }
 void write_p_q()
 {
-    ORDER ot;
+    ORDER *ot;
     if(order_p_front == NULL)
     {
         order_p_front = order_p_temp;
@@ -1170,7 +1177,7 @@ void write_p_q()
     main_counter.o_p_ID++;
     write_counters(main_counter);
 }
-void insert_opq_tolist()
+void insert_poq_tolist()
 {
     if(order_p_front == NULL)
     {
@@ -1231,7 +1238,7 @@ void place_order()
     scanf("%d",&p_id);
     if(!check_product(p_id))
     {
-        printf("Product ID not in the database.\nEnter valid Product ID\n");
+        printf("Product not Available.\n");
         goto p_id_again;
     }
     order od;
@@ -1251,12 +1258,7 @@ void place_order()
     order_temp->data = od;
     order_temp->next = NULL;
     order_temp->prev = NULL;
-    order_p_temp->data.o_date = curdate;
-    order_p_temp->data.o_ID = main_counter.o_ID;
-    order_p_temp->data.o_product = od.o_product;
-    order_p_temp->data.o_user = od.o_user;
-    order_p_temp->data.p_ID = od.p_ID;
-    order_p_temp->data.o_ID = od.o_ID;
+    order_p_temp->data = od;
     order_p_temp->next = NULL;
     order_p_temp->prev = NULL;
     write_p_q();
@@ -1267,12 +1269,13 @@ void place_order()
 void display_order(order data)
 {
     //fill the printf statements here
+    printf("%d \t%s \t%d/%d/%d\n",data.o_date,data.o_product.p_name,data.o_date.day,data.o_date.month,data.o_date.year);
 }
 
 void view_user_orders()
 {
     int i = currentusr.nooforders,j=0;
-    printf("ORDER ID \tPRODUCT NAME \tORDER DATE \t ")
+    printf("ORDER ID \tPRODUCT NAME \tORDER DATE \n ");
     while(i>0)
     {
         order_temp = order_front;
@@ -1327,6 +1330,11 @@ void user_home()
 int main()
 {
     int ch1,ch2,user_wrong_login=0,admin_wrong_login=0;
+    t = time(NULL);
+    tm = localtime(&t);
+    curdate.day = tm->tm_mday;
+    curdate.month = tm->tm_mon+1;
+    curdate.year = tm->tm_year + 1900;
     FILE *load_impt = fopen("data/counters.dat","r");
 
     if(load_impt == NULL)
@@ -1383,7 +1391,7 @@ int main()
                         if(login_user())
                         {
                             user_wrong_login = 0;
-                            //user_home();
+                            user_home();
                         }
                         else
                         {
