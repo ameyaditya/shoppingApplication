@@ -283,7 +283,7 @@ int login_admin()
     char login_name[100],password[100];
     char check_login[100],check_password[100];
     char password_by_letter;
-    int veiw_credential, i=0;
+    int veiw_credential, i=0 , count=0;
     FILE *read_login;
     printf("Enter Login Name: ");
     fflush(stdin);
@@ -304,22 +304,27 @@ int login_admin()
          break;
       else if (password_by_letter == 8) /*ASCII value of BACKSPACE*/
       {
-         printf("\b");
-         i--;
+          if(count>0)
+         {
+            printf("\b");
+            i--;
+            count--;
+         }
       }
 
       else
       {
         password[i++] =password_by_letter ;
         printf("*");
+        count++;
       }
-   }
+    }
    password[i]='\0';
    printf("\nIf u wish to view your password press 1 else 0 :");
-   fflush(stderr);
+   fflush(stdin);
    scanf("%d",&veiw_credential);
    if(veiw_credential==1)
-    printf("\n%s",password);
+    printf("\n%s\n",password);
 
     //gets(password);
 
@@ -340,12 +345,51 @@ int login_admin()
 int login_user()
 {
     char login_name[100],password[100];
-    int match = 0;
+    char password_by_letter ;
+    int match = 0,i=0,count=0;
+    int veiw_credential;
     printf("Enter Email ID: ");
+    fflush(stdin);
     gets(login_name);
     printf("Enter Password: ");
     fflush(stdin);
-    gets(password);
+
+    //Asterix instead of password
+
+    while (1)
+    {
+
+        if (i < 0)
+        i = 0;
+
+        password_by_letter = getch();
+
+      if (password_by_letter == 13)
+         break;
+      else if (password_by_letter == 8) /*ASCII value of BACKSPACE*/
+      {
+        if(count>0)
+            {
+                printf("\b");
+                i--;
+                count--;
+            }
+      }
+
+      else
+      {
+        password[i++] =password_by_letter ;
+        printf("*");
+      }
+    }
+   password[i]='\0';
+   printf("\nIf u wish to view your password press 1 else 0 :");
+   fflush(stdin);
+   scanf("%d",&veiw_credential);
+   if(veiw_credential==1)
+    printf("\n%s\n",password);
+
+    //gets(password);
     user_temp = user_front;
 
     while(user_temp != NULL)
@@ -383,6 +427,8 @@ void user_register()
     user usr;
     user_temp = (USER *)malloc(sizeof(USER));
     char password1[20],password2[20];
+    int i=0,count=0;
+    char password_by_letter;
     //read_counters();
     main_counter.u_ID++;
     usr.u_ID = main_counter.u_ID;
@@ -414,9 +460,39 @@ void user_register()
     fflush(stdin);
     reenter_password:
     printf("Password: ");
-    gets(password1);
+    //Asterix instead of password
+
+    while (1)
+    {
+
+        if (i < 0)
+        i = 0;
+
+        password_by_letter = getch();
+
+      if (password_by_letter == 13)
+         break;
+      else if (password_by_letter == 8) /*ASCII value of BACKSPACE*/
+      {
+        if(count>0)
+            {
+                printf("\b");
+                i--;
+                count--;
+            }
+      }
+
+      else
+      {
+        password1[i++] =password_by_letter ;
+        printf("*");
+      }
+    }
+    password1[i]='\0';
+
+    //gets(password1);
     fflush(stdin);
-    printf("Reenter Password: ");
+    printf("\nReenter Password: ");
     gets(password2);
     fflush(stdin);
     usr.nooforders = 0;
