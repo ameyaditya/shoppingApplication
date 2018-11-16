@@ -1090,6 +1090,7 @@ int delete_in_p(int oid)
                     free(order_p_temp);
                     return TRUE;
                 }
+                order_p_temp = order_p_temp->next;
             }
         }
     }
@@ -1164,6 +1165,7 @@ int delete_in_order(int oid)
                     free(order_temp);
                     return TRUE;
                 }
+                order_temp = order_temp->next;
             }
         }
     }
@@ -1189,6 +1191,7 @@ void delete_in_user(int uid, int oid)
                 user_temp->data.o_ID[i] = user_temp->data.o_ID[i+1];
             }
         }
+        user_temp = user_temp->next;
     }
 }
 void delete_order(int oid)
@@ -1203,12 +1206,16 @@ void delete_order(int oid)
             found_in_priority = 1;
             uid = order_p_temp->data.u_ID;
         }
+        order_p_temp = order_p_temp->next;
     }
     order_temp = order_front;
     while(order_temp != NULL)
     {
         if(order_temp->data.o_ID == oid)
+        {
             found_in_order = 1;
+        }
+        order_temp = order_temp->next;
     }
     if(found_in_priority == 0 && found_in_order == 1)
     {
