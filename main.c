@@ -354,8 +354,6 @@ int login_user()
     gets(login_name);
     printf("Enter Password: ");
     fflush(stdin);
-    gets(password);
-
     while(1)
     {
         if(i < 0)
