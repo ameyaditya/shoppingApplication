@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include<string.h>
 #include<ctype.h>
+#include<conio.h>
 #include<math.h>
 #include<time.h>
 #define TRUE 1
@@ -297,7 +298,8 @@ void load_orders()
 
 int login_admin()
 {
-    char login_name[100],password[100];
+    int i = 0, cnt = 0;
+    char login_name[100],password[100],pass;
     char check_login[100],check_password[100];
     FILE *read_login;
     printf("Enter Login Name: ");
@@ -305,8 +307,30 @@ int login_admin()
     gets(login_name);
     printf("Enter Password: ");
     fflush(stdin);
-    gets(password);
-
+    while(1)
+    {
+        if(i < 0)
+            i = 0;
+        pass = getch();
+        if(pass == 13)
+            break;
+        else if(pass == 8)
+        {
+            if(cnt > 0)
+            {
+                printf("\b");
+                i--;
+                cnt--;
+            }
+        }
+        else
+        {
+            password[i++] = pass;
+            printf("*");
+            cnt++;
+        }
+    }
+    password[i] = '\0';
     if((read_login = fopen("data/admin_login.txt","r")) == NULL)
     {
         printf("Couldn't find Admin details\n");
@@ -323,14 +347,41 @@ int login_admin()
 
 int login_user()
 {
-    char login_name[100],password[100];
-    int match = 0;
+    char login_name[100],password[100],pass;
+    int match = 0,i = 0, cnt = 0;
     printf("Enter Email ID: ");
     fflush(stdin);
     gets(login_name);
     printf("Enter Password: ");
     fflush(stdin);
     gets(password);
+
+    while(1)
+    {
+        if(i < 0)
+            i = 0;
+        pass = getch();
+        if(pass == 13)
+            break;
+        else if(pass == 8)
+        {
+            if(cnt > 0)
+            {
+                printf("\b");
+                printf(" ");
+                printf("\b");
+                i--;
+                cnt--;
+            }
+        }
+        else
+        {
+            password[i++] = pass;
+            printf("*");
+            cnt++;
+        }
+    }
+    password[i] = '\0';
     user_temp = user_front;
 
     while(user_temp != NULL)
@@ -1122,6 +1173,7 @@ int delete_in_order(int oid)
 }
 void delete_in_user(int uid, int oid)
 {
+    int i;
     user_temp = user_front;
     while(user_temp != NULL)
     {
@@ -1581,7 +1633,7 @@ void user_home()
                 break;
             case 4:
                 printf("Enter Order ID to be deleted: ");
-                scanf("%d",%oid);
+                scanf("%d",&oid);
                 if(check_order(oid))
                 {
                     delete_order(oid);
