@@ -455,6 +455,7 @@ void displayele(USER *ptr)
 
 int deleteinlist(int uid)
 {
+    int i;
     char ch;
     user_temp = user_front;
 
@@ -472,6 +473,12 @@ int deleteinlist(int uid)
             {
                 user_front = NULL;
                 user_end = NULL;
+                for(i=0;i<user_temp->data.nooforders;i++)
+                {
+                    delete_in_p(user_temp->data.o_ID[i]);
+                    delete_in_order(user_temp->data.o_ID[i]);
+                    rewriteorders();
+                }
                 free(user_temp);
                 return TRUE;
             }
@@ -491,6 +498,12 @@ int deleteinlist(int uid)
                 user_temp = user_front;
                 user_front = user_front->next;
                 user_front->prev = NULL;
+                for(i=0;i<user_temp->data.nooforders;i++)
+                {
+                    delete_in_p(user_temp->data.o_ID[i]);
+                    delete_in_order(user_temp->data.o_ID[i]);
+                    rewriteorders();
+                }
                 free(user_temp);
                 return TRUE;
             }
@@ -507,6 +520,12 @@ int deleteinlist(int uid)
                 user_temp = user_end;
                 user_end = user_end->prev;
                 user_end->next = NULL;
+                for(i=0;i<user_temp->data.nooforders;i++)
+                {
+                    delete_in_p(user_temp->data.o_ID[i]);
+                    delete_in_order(user_temp->data.o_ID[i]);
+                    rewriteorders();
+                }
                 free(user_temp);
                 return TRUE;
             }
@@ -525,6 +544,12 @@ int deleteinlist(int uid)
                     {
                         user_temp->prev->next = user_temp->next;
                         user_temp->next->prev = user_temp->prev;
+                        for(i=0;i<user_temp->data.nooforders;i++)
+                        {
+                            delete_in_p(user_temp->data.o_ID[i]);
+                            delete_in_order(user_temp->data.o_ID[i]);
+                            rewriteorders();
+                        }
                         free(user_temp);
                         return TRUE;
                     }
@@ -796,7 +821,7 @@ void manage_users()
                 view_users();
                 break;
             case 3:
-                printf("Enter your ID to Delete: ");
+                printf("Enter User ID to Delete: ");
                 scanf("%d",&uid);
                 res = deleteinlist(uid);
 
@@ -973,6 +998,198 @@ int display_order_details(int id)
     }
     return FALSE;
 }
+int delete_in_p(int oid)
+{
+    order_p_temp = order_p_front;
+    if(order_p_temp == NULL)
+        return FALSE;
+    else if(order_p_front->next == NULL)
+    {
+        if(order_p_front->data.o_ID == oid)
+        {
+            order_p_front = NULL;
+            order_p_end = NULL;
+            free(order_p_temp);
+            return TRUE;
+        }
+    }
+    else
+    {
+        if(order_p_front->data.o_ID == oid)
+        {
+            order_p_front = order_p_front->next;
+            order_p_front->prev = NULL;
+            free(order_p_temp);
+            return TRUE;
+        }
+        else if(order_p_end->data.o_ID == oid)
+        {
+            order_p_temp = order_p_end;
+            order_p_end = order_p_end->prev;
+            order_p_end->next = NULL;
+            free(order_p_temp);
+            return TRUE;
+        }
+        else
+        {
+            while(order_p_temp != NULL)
+            {
+                if(order_p_temp->data.o_ID == oid)
+                {
+                    order_p_temp->prev->next = order_p_temp->next;
+                    order_p_temp->next->prev = order_p_temp->prev;
+                    free(order_p_temp);
+                    return TRUE;
+                }
+            }
+        }
+    }
+    return FALSE;
+}
+
+void rewriteorders()
+{
+    FILE *order_details = fopen("data/order_details.dat","w");
+    ORDER *temp;
+    order o;
+    temp = order_front;
+    while(temp != NULL)
+    {
+        o = temp->data;
+        fwrite(&o, sizeof(order), 1, order_details);
+        temp = temp->next;
+    }
+    fclose(order_details);
+    order_details = fopen("data/priority_order.dat","w");
+    temp = order_p_front;
+    while(temp != NULL)
+    {
+        o = temp->data;
+        fwrite(&o, sizeof(order), 1, order_details);
+        temp = temp->next;
+    }
+    fclose(order_details);
+}
+
+
+int delete_in_order(int oid)
+{
+    order_temp = order_front;
+    if(order_temp == NULL)
+        return FALSE;
+    else if(order_front->next == NULL)
+    {
+        if(order_front->data.o_ID == oid)
+        {
+            order_front = NULL;
+            order_end = NULL;
+            free(order_temp);
+            return TRUE;
+        }
+    }
+    else
+    {
+        if(order_front->data.o_ID == oid)
+        {
+            order_front = order_front->next;
+            order_front->prev = NULL;
+            free(order_temp);
+            return TRUE;
+        }
+        else if(order_end->data.o_ID == oid)
+        {
+            order_temp = order_end;
+            order_end = order_end->prev;
+            order_end->next = NULL;
+            free(order_temp);
+            return TRUE;
+        }
+        else
+        {
+            while(order_temp != NULL)
+            {
+                if(order_temp->data.o_ID == oid)
+                {
+                    order_temp->prev->next = order_temp->next;
+                    order_temp->next->prev = order_temp->prev;
+                    free(order_temp);
+                    return TRUE;
+                }
+            }
+        }
+    }
+    return FALSE;
+}
+void delete_in_user(int uid, int oid)
+{
+    user_temp = user_front;
+    while(user_temp != NULL)
+    {
+        if(user_temp->data.u_ID == uid)
+        {
+            for(i=0;i<user_temp->data.nooforders;i++)
+            {
+                if(user_temp->data.o_ID[i] == oid)
+                    break;
+            }
+            user_temp->data.nooforders--;
+            user_temp->data.prime = user_temp->data.nooforders/6;
+            for(;i<user_temp->data.nooforders;i++)
+            {
+                user_temp->data.o_ID[i] = user_temp->data.o_ID[i+1];
+            }
+        }
+    }
+}
+void delete_order(int oid)
+{
+    char choice;
+    int found_in_priority = 0, found_in_order = 0, res1, res2, uid;
+    order_p_temp = order_p_front;
+    while(order_p_temp != NULL)
+    {
+        if(order_p_temp->data.o_ID == oid)
+        {
+            found_in_priority = 1;
+            uid = order_p_temp->data.u_ID;
+        }
+    }
+    order_temp = order_front;
+    while(order_temp != NULL)
+    {
+        if(order_temp->data.o_ID == oid)
+            found_in_order = 1;
+    }
+    if(found_in_priority == 0 && found_in_order == 1)
+    {
+        printf("Order already delivered, Cannot delete it\n");
+        return;
+    }
+    if(found_in_order == 0)
+    {
+        printf("Wrong Order ID, Please enter correct ID\n");
+        return;
+    }
+    display_order_details(oid);
+    printf("Do you want to Delete the above order?(Y/N)\n");
+    fflush(stdin);
+    scanf("%c",&choice);
+    if(choice == 'Y' || choice == 'y')
+    {
+        res1 = delete_in_p(oid);
+        res2 = delete_in_order(oid);
+        if(res1 && res2)
+        {
+            printf("Successfully deleted Order %d\n",oid);
+            rewriteorders();
+            main_counter.o_ID--;
+            main_counter.o_p_ID--;
+            write_counters(main_counter);
+            delete_in_user(uid, oid);
+            deleteinfile(uid);
+        }
+    }
+}
 
 void manage_orders()
 {
@@ -982,7 +1199,7 @@ void manage_orders()
     {
         system("cls");
         printf("ONLINE SHOPPING APPLICATION\n\n");
-        printf("1. View all current orders\n2. View all placed orders\n3. View details by Order ID\n4. Exit\n");
+        printf("1. View all current orders\n2. View all placed orders\n3. View details by Order ID\n4. Delete Order by ID\n5. Exit\n");
         //Delete order, just an option
         printf("Enter your choice: ");
         fflush(stdin);
@@ -1005,6 +1222,13 @@ void manage_orders()
                 system("pause");
                 break;
             case 4:
+                printf("Enter Order ID to be deleted: ");
+                fflush(stdin);
+                scanf("%d",&oid);
+                delete_order(oid);
+                system("pause");
+                break;
+            case 5:
                 return;
             default:
                 printf("Wrong Choice entered\n");
@@ -1310,16 +1534,38 @@ void view_user_orders()
     }
     system("pause");
 }
+user current_usr(int uid)
+{
+    user_temp = user_front;
+    while(user_temp != NULL)
+    {
+        if(user_temp->data.u_ID == uid)
+            return user_temp->data;
+
+    }
+}
+
+int check_order(int oid)
+{
+    int i;
+    for(i=0;i<currentusr.nooforders;i++)
+    {
+        if(currentusr.o_ID[i] == oid)
+            return TRUE;
+    }
+    return FALSE;
+}
 
 void user_home()
 {
-   int ch;
+    char choice;
+    int ch,oid;
 
     while(1)
     {
         system("cls");
         printf("ONLINE SHOPPING APPLICATION\n\n");
-        printf("1. View Product\n2. Place Order by Product ID\n3. View Orders\n4. Edit Details\n5. Delete Account\n6. Logout\n\n");
+        printf("1. View Product\n2. Place Order by Product ID\n3. View Orders\n4. Delete Order by ID\n5. Edit Details\n6. Delete Account\n7. Logout\n\n");
         printf("Enter your choice: ");
         scanf("%d",&ch);
         switch(ch)
@@ -1334,10 +1580,32 @@ void user_home()
                 view_user_orders();
                 break;
             case 4:
+                printf("Enter Order ID to be deleted: ");
+                scanf("%d",%oid);
+                if(check_order(oid))
+                {
+                    delete_order(oid);
+                    currentusr = current_usr(currentusr.u_ID);
+                }
+                else
+                {
+                    printf("Cannot delete the order which you haven't placed.\n");
+                }
                 break;
             case 5:
                 break;
             case 6:
+                printf("Do you really want to delete your account?(Y/N): ");
+                fflush(stdin);
+                scanf("%c",&choice);
+                if(choice == 'Y' || choice == 'y')
+                {
+                    deleteinlist(currentusr.u_ID);
+                    deleteinfile(currentusr.u_ID);
+                    return;
+                }
+                break;
+            case 7:
                 //logout
                 return ;
             default:
