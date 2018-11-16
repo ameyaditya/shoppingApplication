@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include<string.h>
 #include<ctype.h>
+#include<math.h>
 #include<time.h>
 #define TRUE 1
 #define FALSE 0
@@ -238,10 +239,12 @@ int difference(dat date, int daystodeliver)
     int i,dif;
     unsigned long int n1,n2;
     n1 = date.year*365 + date.day;
-    for(i=0;i<date.month-1;i++)
+    for(i=0;i<(date.month)-1;i++)
+    {
         n1+= monthDays[i];
+        //printf("Yes\n");
+    }
     n1 += count_leap_years(date);
-
     n2 = curdate.year*365 + curdate.day;
     for(i=0;i<curdate.month-1;i++)
         n2+=monthDays[i];
@@ -253,6 +256,20 @@ int difference(dat date, int daystodeliver)
         return daystodeliver-dif;
 
 }
+void insert_order_tolist()
+{
+    if(order_front == NULL)
+    {
+        order_front = order_temp;
+        order_end = order_temp;
+    }
+    else
+    {
+        order_end->next = order_temp;
+        order_temp->prev = order_end;
+        order_end = order_temp;
+    }
+}
 void load_orders()
 {
     FILE *load_order=fopen("data/order_details.dat","r");
@@ -261,6 +278,7 @@ void load_orders()
     while(i>0)
     {
         fread(&loader,sizeof(order),1,load_order);
+        printf("%d\n",loader.o_date.month);
         order_temp = (ORDER*)malloc(sizeof(ORDER));
         if(loader.o_product.daysleft > 0)
         {
@@ -308,6 +326,7 @@ int login_user()
     char login_name[100],password[100];
     int match = 0;
     printf("Enter Email ID: ");
+    fflush(stdin);
     gets(login_name);
     printf("Enter Password: ");
     fflush(stdin);
@@ -316,9 +335,12 @@ int login_user()
 
     while(user_temp != NULL)
     {
+        printf("%s - %s\n",user_temp->data.email_id,login_name);
+        printf("%s - %s\n",user_temp->data.password,password);
         if(strcmp(user_temp->data.email_id,login_name) == 0 && strcmp(user_temp->data.password,password) == 0)
         {
             match = 1;
+            printf("%s\n",user_temp->data.email_id);
             currentusr = user_temp->data;
             break;
         }
@@ -392,6 +414,7 @@ void user_register()
         printf("Passwords dont match Enter again\n");
         goto reenter_password;
     }
+    strcpy(usr.password,password1);
     usr.prime = 0;
     user_temp->data = usr;
     user_temp->next = NULL;
@@ -611,7 +634,7 @@ void view_product()
         printf("%7d\t",product_temp->data.p_ID);
         printf("%9s\t",product_temp->data.p_name);
         printf("%4d\t",product_temp->data.no_of_products);
-        printf("%9f\t",product_temp->data.price);
+        printf("%9f\n",product_temp->data.price);
         //printf("%5f\t",product_temp->data.rating);
         product_temp = product_temp->next;
     }
@@ -717,8 +740,8 @@ int deleteproductinlist(int pid)
 void deleteproductinfile(int pid)
 {
     FILE *product_data = fopen("data/product_details.dat","w");
-    USER *temporary;
-    user t2;
+    PRODUCT *temporary;
+    product t2;
     temporary = product_front;
 
     while(temporary!= NULL)
@@ -746,11 +769,11 @@ int view_user_details_by_ID(int id)
             printf("Password: %s\n",user_temp->data.password);
             printf("Prime Number: %d\n",user_temp->data.prime);
             printf("Total number of orders placed: %d\n",user_temp->data.nooforders);
-            return 1;
+            return TRUE;
         }
         user_temp = user_temp->next;
     }
-    return 0;
+    return FALSE;
 }
 
 void manage_users()
@@ -901,7 +924,7 @@ void manage_products()
 
                 if(res)
                 {
-                    printf("Deleted User\n");
+                    printf("Deleted Product\n");
                     deleteproductinfile(pid);
                     main_counter.p_ID--;
                     write_counters(main_counter);
@@ -928,6 +951,7 @@ void manage_products()
 }
 int display_order_details(int id)
 {
+    int psuc,usuc;
     order_temp = order_front;
     while(order_temp != NULL)
     {
@@ -941,8 +965,8 @@ int display_order_details(int id)
             printf("Order Date: %d/%d/%d\n",order_temp->data.o_date.day,order_temp->data.o_date.month,order_temp->data.o_date.year);
             printf("\nUSER DETAILS\n");
             printf("------------\n");
-            view_user_details_by_ID(order_temp->data.u_ID);
-            display_product_by_id(order_end->data.p_ID);
+            usuc = view_user_details_by_ID(order_temp->data.u_ID);
+            psuc = display_product_by_id(order_end->data.p_ID);
             return TRUE;
         }
         order_temp = order_temp->next;
@@ -974,9 +998,11 @@ void manage_orders()
                 break;
             case 3:
                 printf("Enter your Order to search: ");
+                fflush(stdin);
                 scanf("%d",&oid);
                 if(!display_order_details(oid))
                     printf("Order Details not found.\n");
+                system("pause");
                 break;
             case 4:
                 return;
@@ -1017,6 +1043,7 @@ void admin_home()
 }
 void update_current_user(int o_id)
 {
+    currentusr.o_ID[currentusr.nooforders] = o_id;
     currentusr.nooforders++;
     currentusr.prime = currentusr.nooforders/6;
     user_temp = user_front;
@@ -1060,27 +1087,14 @@ void write_product_file()
 void write_order(order o)
 {
     FILE *register_orders = fopen("data/order_details.dat","a");
-    if(register_orders = NULL)
+    if(register_orders == NULL)
     {
         printf("cannot create a file\n");
         exit(EXIT_FAILURE);
     }
-    fwrite(&o,sizeof(order),1,register_orders);
+    fwrite(&o, sizeof(order), 1, register_orders);
     fclose(register_orders);
-}
-void insert_order_tolist()
-{
-    if(order_front == NULL)
-    {
-        order_front = order_temp;
-        order_end = order_temp;
-    }
-    else
-    {
-        order_end->next = order_temp;
-        order_temp->prev = order_end;
-        order_end = order_temp;
-    }
+    printf("Wrote Order to Order_details.dat\n");
 }
 int check_product(int p_id)
 {
@@ -1173,7 +1187,7 @@ void write_p_q()
             order_p_end = order_p_temp;
         }
     }
-    write_p_order(ot->data);
+    write_p_order(order_p_temp->data);
     main_counter.o_p_ID++;
     write_counters(main_counter);
 }
@@ -1203,6 +1217,7 @@ int checkorder(order test)
 {
     int dif;
     dif = difference(test.o_date,test.o_product.daystodeliver);
+    printf("Yes\n");
     if(dif == 0)
         return 0;
     else
@@ -1216,8 +1231,10 @@ void load_p_orders()
     while(i>0)
     {
         fread(&loader, sizeof(order), 1, load_order);
+        printf("%d\n",loader.o_date.month);
         if(checkorder(loader))
         {
+            printf("Yes\n");
             loader = updated_order(loader);
             order_p_temp = (ORDER*)malloc(sizeof(ORDER));
             order_p_temp->data = loader;
@@ -1233,6 +1250,7 @@ void load_p_orders()
 void place_order()
 {
     int p_id;
+    order od;
     p_id_again:
     printf("Enter Product ID to Place order: ");
     scanf("%d",&p_id);
@@ -1241,7 +1259,6 @@ void place_order()
         printf("Product not Available.\n");
         goto p_id_again;
     }
-    order od;
     order_temp = (ORDER*)malloc(sizeof(ORDER));
     order_p_temp = (ORDER*)malloc(sizeof(ORDER));
     main_counter.o_ID++;
@@ -1264,18 +1281,19 @@ void place_order()
     write_p_q();
     insert_order_tolist();
     write_order(od);
+    system("pause");
 }
 
 void display_order(order data)
 {
     //fill the printf statements here
-    printf("%d \t%s \t%d/%d/%d\n",data.o_date,data.o_product.p_name,data.o_date.day,data.o_date.month,data.o_date.year);
+    printf("%d \t%s \t%d/%d/%d\n",data.o_ID,data.o_product.p_name,data.o_date.day,data.o_date.month,data.o_date.year);
 }
 
 void view_user_orders()
 {
     int i = currentusr.nooforders,j=0;
-    printf("ORDER ID \tPRODUCT NAME \tORDER DATE \n ");
+    printf("ORDER ID \tPRODUCT NAME \tORDER DATE \n");
     while(i>0)
     {
         order_temp = order_front;
@@ -1290,6 +1308,7 @@ void view_user_orders()
         j++;
         i--;
     }
+    system("pause");
 }
 
 void user_home()
@@ -1346,12 +1365,14 @@ int main()
     load_users();
     load_products();
     load_orders();
-    write_order_file();
+    load_p_orders();
+    //write_order_file();
     //load priority orders
     // write priority orders to file
     while(1)
     {
         system("cls");
+        //printf("Current date: %d/%d/%d\n",curdate.day,curdate.month,curdate.year);
         printf("ONLINE SHOPPING APPLICATION\n\n");
         printf("1. Admin Login\n2. User Login/Register\n3. Exit\n");
         printf("Enter your choice: ");
