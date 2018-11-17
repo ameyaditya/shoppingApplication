@@ -343,6 +343,8 @@ int login_admin()
             if(cnt > 0)
             {
                 printf("\b");
+                printf(" ");
+                printf("\b");
                 i--;
                 cnt--;
             }
@@ -914,6 +916,7 @@ void manage_users()
                 break;
             case 4:
                 printf("Enter user ID: ");
+                fflush(stdin);
                 scanf("%d",&uid);
                 if(!view_user_details_by_ID(uid))
                     printf("User Details not found.\n");
