@@ -44,6 +44,7 @@ typedef struct {
 }counters;
 
 counters main_counter={0,0,0,0};
+counters id_counter={0,0,0,0};
 
 typedef struct {
     int u_ID;
@@ -151,6 +152,17 @@ void write_counters(counters c)
     fwrite(&c,sizeof(counters),1,write);
     fclose(write);
 }
+void write_idcounters(counters c)
+{
+    FILE *write = fopen("data/idcounters.dat","w");
+    if(write == NULL)
+    {
+        printf("File couldn't be created\n");
+        exit(EXIT_FAILURE);
+    }
+    fwrite(&c,sizeof(counters),1,write);
+    fclose(write);
+}
 
 void read_counters()
 {
@@ -161,6 +173,18 @@ void read_counters()
         exit(EXIT_FAILURE);
     }
     fread(&main_counter,sizeof(counters),1,read);
+    fclose(read);
+}
+
+void read_idcounters()
+{
+    FILE *read = fopen("data/idcounters.dat","r");
+    if(read == NULL)
+    {
+        printf("File doesn't exist\n");
+        exit(EXIT_FAILURE);
+    }
+    fread(&id_counter,sizeof(counters),1,read);
     fclose(read);
 }
 
@@ -422,7 +446,8 @@ void user_register()
     char password1[20],password2[20];
     //read_counters();
     main_counter.u_ID++;
-    usr.u_ID = main_counter.u_ID;
+    id_counter.u_ID++;
+    usr.u_ID = id_counter.u_ID;
     printf("Enter your Details\n\n");
     printf("First Name: ");
     fflush(stdin);
@@ -482,9 +507,9 @@ void view_users()
 
     while(user_temp != NULL)
     {
-        printf("%7d\t",user_temp->data.u_ID);
-        printf("%9s\t",user_temp->data.u_name.fname);
-        printf("%10s\n",user_temp->data.email_id);
+        printf("%4d\t\t",user_temp->data.u_ID);
+        printf("%7s\t\t",user_temp->data.u_name.fname);
+        printf("%8s\n",user_temp->data.email_id);
         user_temp = user_temp->next;
     }
     system("pause");
@@ -642,12 +667,12 @@ void write_product(product p)
 void product_register()
 {
     product pd;
-    product_temp = (struct product_list *)malloc(sizeof(struct product_list));
-    char password1[20],password2[20];
+    product_temp = (PRODUCT*)malloc(sizeof(PRODUCT));
     //read_counters();
     main_counter.p_ID++;
-    pd.p_ID = main_counter.p_ID;
-    printf("Enter your Details\n\n");
+    id_counter.p_ID++;
+    pd.p_ID = id_counter.p_ID;
+    printf("Enter product Details\n\n");
     printf("Product Name: ");
     fflush(stdin);
     gets(pd.p_name);
@@ -693,6 +718,7 @@ void product_register()
     product_temp->prev = NULL;
     insert_product_tolist();
     write_counters(main_counter);
+    write_idcounters(id_counter);
     write_product(pd);
     printf("Product Adding Successful\n");
     system("pause");
@@ -705,10 +731,10 @@ void view_product()
 
     while(product_temp != NULL)
     {
-        printf("%7d\t",product_temp->data.p_ID);
+        printf("%5d\t\t",product_temp->data.p_ID);
         printf("%9s\t",product_temp->data.p_name);
-        printf("%4d\t",product_temp->data.no_of_products);
-        printf("%9f\n",product_temp->data.price);
+        printf("%11d\t\t",product_temp->data.no_of_products);
+        printf("%8.2f\n",product_temp->data.price);
         //printf("%5f\t",product_temp->data.rating);
         product_temp = product_temp->next;
     }
@@ -833,8 +859,8 @@ int view_user_details_by_ID(int id)
     {
         if(user_temp->data.u_ID == id)
         {
-            printf("\t\tUSER DETAILS of %d\n",id);
-            printf("\t\t------------------\n");
+            printf("\t\t USER DETAILS of %d\n",id);
+            printf("\t\t-------------------\n");
             printf("Name: %s %s\n",user_temp->data.u_name.fname,user_temp->data.u_name.lname);
             printf("Address: %s, %s\n",user_temp->data.u_address.door_no,user_temp->data.u_address.address_line1);
             printf("         %s, %s\n",user_temp->data.u_address.city,user_temp->data.u_address.state);
@@ -907,7 +933,7 @@ int display_product_by_id(int id)
     {
         if(product_temp->data.p_ID == id)
         {
-            printf("\t\tPRODUCT DETAILS of %d\n",id);
+            printf("\t\t PRODUCT DETAILS of %d\n",id);
             printf("\t\t----------------------\n");
             printf("Product ID: %d\n",product_temp->data.p_ID);
             printf("Product Name: %s\n",product_temp->data.p_name);
@@ -964,10 +990,72 @@ void view_order(ORDER *ptr)
     printf("ORDER ID \tPRODUCT ID  \tUSER ID \tORDER DATE\n");
     while(ptr != NULL)
     {
-        printf("%9d\t%11d\t%8d\t",ptr->data.o_ID,ptr->data.p_ID,ptr->data.u_ID);
+        printf("%5d\t\t%6d\t%12d\t\t",ptr->data.o_ID,ptr->data.p_ID,ptr->data.u_ID);
         printf("%d/%d/%d\n",ptr->data.o_date.day,ptr->data.o_date.month, ptr->data.o_date.year);
         ptr = ptr->next;
     }
+    system("pause");
+}
+void update_product(int pid,product p)
+{
+    product_temp = product_front;
+    while(product_temp != NULL)
+    {
+        if(product_temp->data.p_ID == pid)
+        {
+            product_temp->data = p;
+            break;
+        }
+        product_temp = product_temp->next;
+    }
+}
+void edit_product(int pid)
+{
+    product pd;
+    pd.p_ID = pid;
+    printf("Enter product Details\n\n");
+    printf("Product Name: ");
+    fflush(stdin);
+    gets(pd.p_name);
+    printf("Describe the Product\n");
+    fflush(stdin);
+    gets(pd.descr);
+    printf("Product Remaining: ");
+    fflush(stdin);
+    scanf("%d",&pd.no_of_products);
+    printf("Enter the Price of Product: ");
+    fflush(stdin);
+    scanf("%f",&pd.price);
+    printf("Enter number of days to deliver: ");
+    fflush(stdin);
+    scanf("%d",&pd.daystodeliver);
+    printf("Enter the Seller First Name: ");
+    fflush(stdin);
+    gets(pd.p_seller.s_name.fname);
+    fflush(stdin);
+    printf("Enter the Seller Last Name: ");
+    gets(pd.p_seller.s_name.lname);
+    fflush(stdin);
+    printf("Enter the Seller Address\n");
+    printf("Door No: ");
+    gets(pd.p_seller.s_address.door_no);
+    fflush(stdin);
+    printf("Address line 1: ");
+    gets(pd.p_seller.s_address.address_line1);
+    fflush(stdin);
+    printf("City: ");
+    gets(pd.p_seller.s_address.city);
+    fflush(stdin);
+    printf("State: ");
+    gets(pd.p_seller.s_address.state);
+    fflush(stdin);
+    printf("Enter phone number: ");
+    gets(pd.p_seller.phone_no);
+    fflush(stdin);
+    pd.daysleft = pd.daystodeliver;
+    update_product(pid, pd);
+    deleteproductinfile(pid);//does the required function to update in file
+    printf("Product updated successfully.\n");
     system("pause");
 }
 void manage_products()
@@ -978,7 +1066,7 @@ void manage_products()
     {
         system("cls");
         printf("ONLINE SHOPPING APPLICATION\n\n");
-        printf("1. Add Products\n2. View Products\n3. Delete Products by Name\n4. View Products detail by Name\n5. Exit\n");
+        printf("1. Add Products\n2. View Products\n3. Delete Products by Name\n4. View Products detail by Name\n5. Edit product details by ID\n6. Exit\n");
         printf("Enter your choice: ");
         fflush(stdin);
         scanf("%d",&ch);
@@ -1017,6 +1105,18 @@ void manage_products()
                 system("pause");
                 break;
             case 5:
+                enteragain:
+                printf("Enter product ID to edit: ");
+                fflush(stdin);
+                scanf("%d",&pid);
+                if(!check_productp(pid))
+                {
+                    printf("Wrong product ID entered. Enter again.\n");
+                    goto enteragain;
+                }
+                edit_product(pid);
+                break;
+            case 6:
                 return;
             default:
                 printf("Wrong Choice entered\n");
@@ -1031,6 +1131,7 @@ int display_order_details(int id)
     {
         if(order_temp->data.o_ID == id)
         {
+            printf("\n\n");
             printf("\t\tORDER DETAILS\n");
             printf("\t\t-------------\n");
             printf("Order ID: %d\n",id);
@@ -1040,6 +1141,8 @@ int display_order_details(int id)
             printf("\nUSER DETAILS\n");
             printf("------------\n");
             usuc = view_user_details_by_ID(order_temp->data.u_ID);
+            printf("\nPRODUCT DETAILS\n");
+            printf("---------------\n");
             psuc = display_product_by_id(order_end->data.p_ID);
             return TRUE;
         }
@@ -1377,6 +1480,19 @@ void write_order(order o)
     fclose(register_orders);
     printf("Wrote Order to Order_details.dat\n");
 }
+int check_productp(int p_id)
+{
+    product_temp = product_front;
+    while(product_temp!=NULL)
+    {
+        if(product_temp->data.p_ID == p_id)
+        {
+            return TRUE;
+        }
+        product_temp = product_temp->next;
+    }
+    return FALSE;
+}
 int check_product(int p_id)
 {
     product_temp = product_front;
@@ -1543,12 +1659,14 @@ void place_order()
     order_temp = (ORDER*)malloc(sizeof(ORDER));
     order_p_temp = (ORDER*)malloc(sizeof(ORDER));
     main_counter.o_ID++;
-    od.o_ID = main_counter.o_ID;
+    id_counter.o_ID++;
+    od.o_ID = id_counter.o_ID;
     od.p_ID = p_id;
     od.u_ID = currentusr.u_ID;
     update_current_user(od.o_ID);
     write_user_file();
     write_counters(main_counter);
+    write_idcounters(id_counter);
     od.o_user = currentusr;
     od.o_product = return_product(p_id);
     od.o_product.daystodeliver = ceil(od.o_product.daystodeliver - (0.5 * od.o_user.prime));
@@ -1612,7 +1730,64 @@ int check_order(int oid)
     }
     return FALSE;
 }
-
+void update_user()
+{
+    user_temp = user_front;
+    while(user_temp != NULL)
+    {
+        if(user_temp->data.u_ID == currentusr.u_ID)
+        {
+            user_temp->data = currentusr;
+            break;
+        }
+        user_temp = user_temp->next;
+    }
+}
+void edit_user()
+{
+    char password1[20],password2[20];
+    printf("Enter your Details\n\n");
+    printf("First Name: ");
+    fflush(stdin);
+    gets(currentusr.u_name.fname);
+    printf("Last Name: ");
+    gets(currentusr.u_name.lname);
+    fflush(stdin);
+    printf("Address\n");
+    printf("Door No: ");
+    gets(currentusr.u_address.door_no);
+    fflush(stdin);
+    printf("Address line 1: ");
+    gets(currentusr.u_address.address_line1);
+    fflush(stdin);
+    printf("City: ");
+    gets(currentusr.u_address.city);
+    fflush(stdin);
+    printf("State: ");
+    gets(currentusr.u_address.state);
+    fflush(stdin);
+    printf("Enter Email ID: ");
+    gets(currentusr.email_id);
+    printf("Enter phone number: ");
+    gets(currentusr.phone_no);
+    fflush(stdin);
+    reenter_password:
+    printf("Password: ");
+    gets(password1);
+    fflush(stdin);
+    printf("Reenter Password: ");
+    gets(password2);
+    if(strcmp(password1,password2) != 0)
+    {
+        printf("Passwords don't match Enter again\n");
+        goto reenter_password;
+    }
+    strcpy(currentusr.password,password1);
+    update_user();
+    deleteinfile(currentusr.u_ID);//function does the same job required
+    printf("User details updated successfully.\n");
+    system("pause");
+}
 void user_home()
 {
     char choice;
@@ -1650,6 +1825,7 @@ void user_home()
                 }
                 break;
             case 5:
+                edit_user();
                 break;
             case 6:
                 printf("Do you really want to delete your account?(Y/N): ");
@@ -1686,6 +1862,11 @@ int main()
         write_counters(main_counter);
     }
     fclose(load_impt);
+    load_impt = fopen("data/idcounters.dat","r");
+    if(load_impt == NULL)
+        write_idcounters(id_counter);
+    fclose(load_impt);
+    read_idcounters();
     read_counters();
     load_users();
     load_products();
@@ -1725,6 +1906,7 @@ int main()
                 while(1)
                 {
                     system("cls");
+                    printf("ONLINE SHOPPING APPLICATION\n\n");
                     printf("1. Login\n2. Sign up\n3. Exit\n\n");
                     printf("Enter your choice: ");
                     scanf("%d",&ch2);
