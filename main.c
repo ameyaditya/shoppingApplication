@@ -1953,7 +1953,7 @@ int main()
                         }
                         else
                         {
-                            printf("Login credentials are wrong. Enter again\n");
+                            printf("\nLogin credentials are wrong. Enter again\n");
                             user_wrong_login++;
 
                             if(user_wrong_login <= 3)
