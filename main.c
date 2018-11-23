@@ -444,7 +444,8 @@ void user_register()
 {
     user usr;
     user_temp = (USER *)malloc(sizeof(USER));
-    char password1[20],password2[20];
+    char password1[20],password2[20],pass;
+    int cnt=0,i=0;
     //read_counters();
     main_counter.u_ID++;
     id_counter.u_ID++;
@@ -477,7 +478,33 @@ void user_register()
     fflush(stdin);
     reenter_password:
     printf("Password: ");
-    gets(password1);
+    while(1)
+    {
+        if(i < 0)
+            i = 0;
+        pass = getch();
+        if(pass == 13)
+            break;
+        else if(pass == 8)
+        {
+            if(cnt > 0)
+            {
+                printf("\b");
+                printf(" ");
+                printf("\b");
+                i--;
+                cnt--;
+            }
+        }
+        else
+        {
+            password1[i++] = pass;
+            printf("*");
+            cnt++;
+        }
+    }
+    password1[i] = '\0';
+    //gets(password1);
     fflush(stdin);
     printf("Reenter Password: ");
     gets(password2);
