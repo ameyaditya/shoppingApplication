@@ -510,7 +510,7 @@ void view_users()
     {
         printf("%4d\t\t",user_temp->data.u_ID);
         printf("%7s\t",user_temp->data.u_name.fname);
-        printf("%5s\n",user_temp->data.email_id);
+        printf("%s\n",user_temp->data.email_id);
         user_temp = user_temp->next;
     }
     system("pause");
@@ -1504,7 +1504,7 @@ void write_order(order o)
     }
     fwrite(&o, sizeof(order), 1, register_orders);
     fclose(register_orders);
-    printf("Wrote Order to Order_details.dat\n");
+    //printf("Wrote Order to Order_details.dat\n");
 }
 int check_productp(int p_id)
 {
@@ -1696,6 +1696,7 @@ void place_order()
     od.o_user = currentusr;
     od.o_product = return_product(p_id);
     od.o_product.daystodeliver = ceil(od.o_product.daystodeliver - (0.5 * od.o_user.prime));
+    od.o_product.daysleft = od.o_product.daystodeliver;
     od.o_date = curdate;
     order_temp->data = od;
     order_temp->next = NULL;
@@ -1706,6 +1707,7 @@ void place_order()
     write_p_q();
     insert_order_tolist();
     write_order(od);
+    printf("Order placed successfully\n");
     system("pause");
 }
 
